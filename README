@@ -1,0 +1,3 @@
+Compare Reviews
+
+Python script that takes in scifi.SE userIDs, then compares the review history of each userID against the first.  Uses web scraping of user profile pages.
