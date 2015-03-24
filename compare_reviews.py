@@ -4,9 +4,13 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import sys
+from time import sleep
 
 USER_PAGE_BASEURL = "http://scifi.stackexchange.com/users/"
 USER_PAGE_OPTIONS = "/?tab=activities&sort=reviews"
+HEADERS =   {"User-Agent" : "Compare Review Scraper",
+             "Accept-Encoding" : "gzip",
+             "From" : "YOUR EMAIL ADDRESS HERE" }
 MAIN_REVIEWS = 200
 SUB_REVIEWS = 80
 
@@ -14,8 +18,10 @@ SUB_REVIEWS = 80
 def fetch_webpage ( url, options, http_error_action = None ) :
     try:
         # Fetch the webpage.
-        response = requests.get(url, params=options)
-        #requests.get(USER_PAGE_BASEURL + user_id, params = USER_PAGE_OPTIONS)
+        response = requests.get(url, params=options, headers=HEADERS)
+
+        # Wait 10 seconds between page requests
+        sleep(10)
 
         # print the URL
         #print "Fetching page:", response.url
@@ -50,7 +56,8 @@ def fetch_reviews ( user, num_of_reviews ):
         for review in reviews:
             reviews_so_far[ review.attrs['href'] ] = review.string
 
-        print "Number of reviews for userid", str(user) + ":", len(reviews_so_far)
+        # Print number of reviews retreived so far.
+        #print "Number of reviews for userid", str(user) + ":", len(reviews_so_far)
         
         user_options['page'] += 1
 
