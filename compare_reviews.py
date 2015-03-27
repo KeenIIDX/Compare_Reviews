@@ -7,12 +7,17 @@ import sys
 from time import sleep
 
 USER_PAGE_BASEURL = "http://scifi.stackexchange.com/users/"
-USER_PAGE_OPTIONS = "/?tab=activities&sort=reviews"
 HEADERS =   {"User-Agent" : "Compare Review Scraper",
              "Accept-Encoding" : "gzip",
              "From" : "YOUR EMAIL ADDRESS HERE" }
 MAIN_REVIEWS = 200
 SUB_REVIEWS = 80
+REVIEW_QUEUES = {"Close Votes"  :   "(close)",
+                 "Reopen Votes" :   "(reopen)",
+                 "Late Answers" :   "(late-answers)",
+                 "Low Quality Posts"    :   "(low-quality-posts)",
+                 "First Posts"  : "(first-posts)",
+                 "Suggested Edits"  :   "(suggested-edits)"}
 
 
 def fetch_webpage ( url, options, http_error_action = None ) :
@@ -43,7 +48,7 @@ def fetch_webpage ( url, options, http_error_action = None ) :
     return BeautifulSoup(response.text)
 
 def fetch_reviews ( user, num_of_reviews ):
-    user_options = { "tab" : "allactions", "sort" : "reviews", "page" : 1}
+    user_options = { "tab" : "activity", "sort" : "reviews", "page" : 1}
     reviews_so_far = {}
     next_link = ""
     
@@ -51,7 +56,7 @@ def fetch_reviews ( user, num_of_reviews ):
         soup = fetch_webpage(USER_PAGE_BASEURL + user, user_options, "review page")
         
         # Get review items from page.
-        reviews = soup.find_all( "a", href = re.compile("(close)|(reopen)"), class_ = "reviewed-action")
+        reviews = soup.find_all( "a", href = re.compile( REVIEW_QUEUES_TO_FIND ), class_ = "reviewed-action")
 
         for review in reviews:
             reviews_so_far[ review.attrs['href'] ] = review.string
@@ -106,7 +111,29 @@ class User:
         self.reviews = {}
         self.comparison = {}
 
+def pick_reviews():
+    review_types = []
 
+    def prompt (review_queue):
+        answer = raw_input( "Do you want to compare " + review_queue + "? [Y/n] ").lower()
+
+        if answer in ('yes', 'ye', 'y', ''):
+            return True
+        else:
+            return False
+
+    for key in REVIEW_QUEUES:
+        if prompt(key):
+            review_types.append(REVIEW_QUEUES[key])
+
+    if review_types == []:
+        print "No queues selected."
+        sys.exit(1)
+
+    global REVIEW_QUEUES_TO_FIND
+    REVIEW_QUEUES_TO_FIND = "|".join(review_types)
+    
+pick_reviews()
 
 main_user = User("main")
 
